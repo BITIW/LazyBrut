@@ -1,5 +1,0 @@
-mechanize
-requests
-colorama
-lxml
-flet
